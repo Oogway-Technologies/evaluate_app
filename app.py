@@ -44,9 +44,9 @@ def run_compare():
     aspects = st.text_input("Aspects: ", key="aspects")
     if aspects:
         # Get reviews for the two products
-        item_1_rev = get_all_reviews(item_1,20)
+        item_1_rev = get_all_reviews(item_1,3)
         # st.write(item_1_rev)
-        item_2_rev = get_all_reviews(item_2,20)
+        item_2_rev = get_all_reviews(item_2,3)
 
         # Run the API on the reviews and aspects
         aspects = [asp.strip() for asp in aspects.split(',')]

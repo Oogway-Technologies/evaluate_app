@@ -72,7 +72,7 @@ def get_highest_count_aspect(aspects,aspect_review_count):
   return sorted(aspects, key=lambda x: aspect_review_count[x], reverse=True)[0]
 
 def get_similar_clusters(product1_clusters,product2_clusters):
-  st.write(product1_clusters,product2_clusters)
+  # st.write(product1_clusters,product2_clusters)
   similarity_matrix = {}
   #find similiarity score for each cluster of product 1 with each cluster of product 2
   for token1 in product1_clusters:
@@ -84,7 +84,7 @@ def get_similar_clusters(product1_clusters,product2_clusters):
   product1_selected = {}
   product2_selected = {}
   selected_pair = []
-  st.write(similarity_matrix)
+  # st.write(similarity_matrix)
   #find best matching for product 1 cluster to product 2 cluster
   for k,v in similarity_matrix:
     if k[0] not in product1_selected and k[1] not in product2_selected:

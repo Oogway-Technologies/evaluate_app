@@ -49,7 +49,7 @@ def get_reviews(prod_id,nextPage=''):
 #     data = glb_wiopy.reviews(prod_id)
 #     return data 
 #    
-def get_all_reviews(prod_id,num_reviews=10):
+def get_all_reviews(prod_id,num_reviews=2):
     nextPage = "/reviews/"+prod_id+"?page=1"
     res = get_reviews(prod_id=prod_id,nextPage=nextPage)
     review_text = []

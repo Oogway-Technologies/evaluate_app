@@ -24,7 +24,7 @@ def get_cluster_labels(asp_vectors,algo):
         return kmeans.labels_,kmeans.cluster_centers_
     if algo=="DBSCAN":
         # st.write("Running DBSCAN")
-        DBSCAN = cluster.DBSCAN(eps=6,min_samples=1)
+        DBSCAN = cluster.DBSCAN(eps=5.5,min_samples=1)
         DBSCAN.fit(asp_vectors)    
         return DBSCAN.labels_,[]
     
