@@ -6,6 +6,7 @@ import streamlit as st
 SERVICE_URL = "http://3.22.185.47:8001/aspect"
 from pyabsa import APCCheckpointManager,ATEPCCheckpointManager
 from utils import *
+from utils import get_cluster_score
 from sklearn.metrics import pairwise_distances_argmin_min
 @st.cache(allow_output_mutation=True)
 def get_models():
@@ -78,7 +79,7 @@ def get_similar_clusters(product1_clusters,product2_clusters):
   for token1 in product1_clusters:
     for token2 in product2_clusters:
       score = nlp(token1).similarity(nlp(token2))
-      if score > 0.45:
+      if score > 0.5:
         similarity_matrix[(token1,token2)] = score
   similarity_matrix = sorted(similarity_matrix.items(), key=lambda t: t[1], reverse=True)
   product1_selected = {}
@@ -98,7 +99,7 @@ load_nlp = time.time()
 nlp = init_spacy_lg()
 loaded_nlp = time.time()
 # st.write("Spacy loading time",loaded_nlp-load_nlp)
-def get_aspects(reviews, aspects):
+def get_aspects(reviews):
     review_list = reviews['reviews']
     review_text = list()
 
@@ -183,11 +184,13 @@ def get_aspects(reviews, aspects):
         label_aspect_list_db[cluster_title[k]] = v
       label_aspect_list = label_aspect_list_db
     # st.write(cluster_title)
-    st.write(label_aspect_list)
-    st.write("Aspect Scoring time",aspect_scoring_end-aspect_scoring_start)
-    st.write("Clustering time",clustering_end-clustering_start)
-    st.write("Aspect polarity extraction time",aspect_extraction_end-aspect_extraction_start)
-    return label_aspect_list
+    # st.write(label_aspect_list)
+    # st.write("Aspect Scoring time",aspect_scoring_end-aspect_scoring_start)
+    # st.write("Clustering time",clustering_end-clustering_start)
+    # st.write("Aspect polarity extraction time",aspect_extraction_end-aspect_extraction_start)
+    cluster_scores = get_cluster_score(label_aspect_list,aspect_score)
+    # st.write(cluster_scores)
+    return label_aspect_list,cluster_scores
 def collect_aspects(aspects, aspect_list):
     # collection = dict()
     # for single_asp in aspect_list:
