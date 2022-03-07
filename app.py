@@ -38,7 +38,7 @@ def average_list(lst):
 
 
 def run_compare():
-    global item_1
+    global item_1 
     global item_2
 
     # Input aspects
@@ -58,8 +58,6 @@ def run_compare():
     aspects_item_2,cluster_scores_2 = get_aspects(item_2_rev)
     
     selected_pair = get_similar_clusters(list(aspects_item_1.keys()),list(aspects_item_2.keys()))
-    # st.write("Common Aspects")
-    # st.write(selected_pair)
     cols = st.columns(2)
     cols[0].header(item_1)
     cols[1].header(item_2)
