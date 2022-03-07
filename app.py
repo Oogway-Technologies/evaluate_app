@@ -1,3 +1,4 @@
+import enum
 import json
 import streamlit as st
 from src.walmart_api import *
@@ -25,8 +26,9 @@ prod = None
 
 
 
-
-st.button('Restart', on_click=clear_state)
+cols = st.columns(2)
+eval_button = cols[0].button('Evaluate')
+cols[1].button('Restart', on_click=clear_state)
 
 
 def average_list(lst):
@@ -40,49 +42,43 @@ def run_compare():
     global item_2
 
     # Input aspects
-    st.markdown('Specify comma-separated aspects to compare')
-    aspects = st.text_input("Aspects: ", key="aspects")
-    if aspects:
-        # Get reviews for the two products
-        item_1_rev = get_all_reviews(item_1,3)
-        # st.write(item_1_rev)
-        item_2_rev = get_all_reviews(item_2,3)
+    # st.markdown('Specify comma-separated aspects to compare')
+    # aspects = st.text_input("Aspects: ", key="aspects")
+    # if aspects:
+    # Get reviews for the two products
+    item_1_rev = get_all_reviews(item_1,1)
+    # st.write(item_1_rev)
+    item_2_rev = get_all_reviews(item_2,1)
 
-        # Run the API on the reviews and aspects
-        aspects = [asp.strip() for asp in aspects.split(',')]
-        st.write("Getting Product 1 Aspects")
-        aspects_item_1 = get_aspects(item_1_rev, aspects)
-        st.write("Getting Product 2 Aspects")
-        aspects_item_2 = get_aspects(item_2_rev, aspects)
-        
-        selected_pair = get_similar_clusters(list(aspects_item_1.keys()),list(aspects_item_2.keys()))
-        st.write("Common Aspects")
-        st.write(selected_pair)
-        # aspects_item_1 = collect_aspects(aspects_item_1, aspects)
-        # aspects_item_2 = collect_aspects(aspects_item_2, aspects)
-
-        # for i in range(0, len(aspects)):
-        #     cols = st.columns(2)
-        #     cols[0].subheader("Aspect: " + aspects[i])
-        #     single_aspect_1 = aspects_item_1[aspects[i]]
-        #     attr_list_1 = single_aspect_1["attribute"]
-        #     perc_1 = average_list(single_aspect_1["perc"])
-        #     cols[0].text(", ".join(attr_list_1))
-        #     cols[0].markdown('Rating: ' + str(perc_1))
-
-        #     cols[1].subheader("Aspect: " + aspects[i])
-        #     single_aspect_2 = aspects_item_2[aspects[i]]
-        #     attr_list_2 = single_aspect_2["attribute"]
-        #     perc_2 = average_list(single_aspect_2["perc"])
-        #     cols[1].text(", ".join(attr_list_2))
-        #     cols[1].markdown('Rating: ' + str(perc_2))
-
+    # Run the API on the reviews and aspects
+    # aspects = [asp.strip() for asp in aspects.split(',')]
+    # st.write("Getting Product 1 Aspects")
+    aspects_item_1,cluster_scores_1 = get_aspects(item_1_rev)
+    # st.write("Getting Product 2 Aspects")
+    aspects_item_2,cluster_scores_2 = get_aspects(item_2_rev)
+    
+    selected_pair = get_similar_clusters(list(aspects_item_1.keys()),list(aspects_item_2.keys()))
+    # st.write("Common Aspects")
+    # st.write(selected_pair)
+    cols = st.columns(2)
+    cols[0].header(item_1)
+    cols[1].header(item_2)
+    for i,pair in enumerate(selected_pair):
+        cols = st.columns(2)
+        aspect = pair[0]
+        score =  cluster_scores_1[pair[0]]
+        cols[0].caption(aspect + ": " + str(score) + "%" )
+        cols[0].progress(score)
+        aspect = pair[1]
+        score =  cluster_scores_2[pair[1]]
+        cols[1].caption(aspect + ": " + str(score) + "%")
+        cols[1].progress(score)
 
 def run():
     global prod
     if not input_prod:
         return
-    if item_1 and item_2:
+    if item_1 and item_2 and eval_button:
         run_compare()
         return
 

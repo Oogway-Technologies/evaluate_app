@@ -40,6 +40,7 @@ def get_word_clusters(unique_aspects, nlp,algo="kmeans"):
     # print("Running k-means clustering...")
 
     labels,cluster_centers = get_cluster_labels(asp_vectors,algo)
+    # st.write(labels,cluster_centers)
     return labels,cluster_centers,asp_vectors
 
 def get_word_vectors(unique_aspects, nlp):
@@ -48,3 +49,10 @@ def get_word_vectors(unique_aspects, nlp):
         token = nlp(aspect)
         asp_vectors.append(token.vector)
     return asp_vectors
+
+def get_cluster_score(label_aspect_list,aspect_score):
+    cluster_scores = {}
+    for label,cluster in label_aspect_list.items():
+        scores = [aspect_score[aspect] for aspect in cluster ]
+        cluster_scores[label] = round(sum(scores)/len(scores))
+    return cluster_scores
