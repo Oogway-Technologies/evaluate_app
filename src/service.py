@@ -6,7 +6,7 @@ import streamlit as st
 SERVICE_URL = "http://3.22.185.47:8001/aspect"
 from pyabsa import APCCheckpointManager,ATEPCCheckpointManager
 from utils import *
-from utils import get_cluster_score
+from utils import get_cluster_score,get_pro_con_list
 from sklearn.metrics import pairwise_distances_argmin_min
 @st.cache(allow_output_mutation=True)
 def get_models():
@@ -99,10 +99,9 @@ load_nlp = time.time()
 nlp = init_spacy_lg()
 loaded_nlp = time.time()
 # st.write("Spacy loading time",loaded_nlp-load_nlp)
-def get_aspects(reviews):
-    review_list = reviews['reviews']
-    review_text = list()
 
+def get_review_list(review_list):
+    review_text = list()
     ctr = 0
     for review in review_list:
         # if ctr > 2:
@@ -110,6 +109,11 @@ def get_aspects(reviews):
         if review["reviewText"]:
           review_text.append(review["reviewText"])
         ctr += 1
+    return review_text
+
+def get_aspects(reviews):
+    review_list = reviews['reviews']
+    review_text = get_review_list(review_list)
     # st.write(review_text)
     with st.spinner('Extracting Aspects and Polarity'):
         aspect_extraction_start = time.time()
@@ -191,31 +195,15 @@ def get_aspects(reviews):
     cluster_scores = get_cluster_score(label_aspect_list,aspect_score)
     # st.write(cluster_scores)
     return label_aspect_list,cluster_scores
-def collect_aspects(aspects, aspect_list):
-    # collection = dict()
-    # for single_asp in aspect_list:
-    #     collection[single_asp] = {
-    #         'attribute': list(),
-    #         'perc': list()
-    #     }
 
-    # for asp in aspects["aspects"]:
-    #     for single_asp in aspect_list:
-    #         asp_entry = asp[single_asp]
-    #         for i in range(0, asp_entry["num_entries"]):
-    #             value_attr = asp_entry['attr_text'][i] + ' ' + asp_entry['attr_key'][i]
-    #             collection[single_asp]['attribute'].append(value_attr)
-    #             collection[single_asp]['perc'].append(asp_entry['perc'])
-
-    collection = {
-        'price':{
-            'attribute':['abc','xyz'],
-            'perc':[80,90]
-        },
-        'size':{
-            'attribute':['mnq','def'],
-            'perc':[70,90]
-        }
-    }
-
-    return collection
+def get_pro_con(body):
+  import requests
+  url = "http://3.22.185.47:8001/procon_ext"
+  payload = json.dumps(body)
+  headers = {
+  'Content-Type': 'application/json'
+  }
+  response = requests.request("POST", url, headers=headers, data=payload)
+  pro_con_list = json.loads(response.text)
+  
+  return get_pro_con_list(pro_con_list)

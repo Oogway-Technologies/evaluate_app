@@ -1,6 +1,6 @@
 from src.walmart_config import (KEY_VERSION, KEY_PATH, CONSUMER_ID)
 from WIOpy import WalmartIO
-
+import streamlit as st
 glb_wiopy = WalmartIO(
         private_key_version=KEY_VERSION,
         private_key_filename=KEY_PATH,
@@ -48,13 +48,23 @@ def get_reviews(prod_id,nextPage=''):
 # def get_reviews(prod_id):
 #     data = glb_wiopy.reviews(prod_id)
 #     return data 
-#    
+#   
+# 
+def split_categoryPath(categoryPath):
+    categoryPath = categoryPath.replace(" ", "-")
+    return categoryPath.split("/")
+
+
 def get_all_reviews(prod_id,num_reviews=2):
     nextPage = "/reviews/"+prod_id+"?page=1"
     res = get_reviews(prod_id=prod_id,nextPage=nextPage)
+    # st.write(res)
+    categoryPath = res.categoryPath
+    categoryPath = split_categoryPath(categoryPath)
     review_text = []
     for review in res.reviews:
-        r = { 'reviewText':review["reviewText"]
+        r = { 'reviewText':review["reviewText"],
+
                 }
         review_text.append(r)    
     for i in range(1,num_reviews):
@@ -77,6 +87,7 @@ def get_all_reviews(prod_id,num_reviews=2):
 
         'itemId':res.itemId,
         'name':res.name,
+        'categoryPath':categoryPath,
         'reviews':review_text
     }
     return data
