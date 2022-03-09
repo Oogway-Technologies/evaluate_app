@@ -125,3 +125,9 @@ def print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2)
         score =  cluster_scores_2[pair[1]]
         cols[1].caption(aspect + ": " + str(score) + "%")
         cols[1].progress(score)    
+
+def list_to_text(review_list_1):
+    full_text = ""
+    for r in review_list_1:
+        full_text = full_text + r + " "
+    return [full_text]

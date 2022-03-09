@@ -3,7 +3,7 @@ import json
 import streamlit as st
 from src.walmart_api import *
 from src.service import get_aspects,get_similar_clusters,get_review_list,get_pro_con
-from utils import print_pros,print_cons,print_aspects
+from utils import print_pros,print_cons,print_aspects,list_to_text
 DEV_MODE = False
 
 
@@ -57,20 +57,20 @@ def run_compare():
     # st.write("Getting Product 1 Aspects")
     review_list_1 = get_review_list(item_1_rev['reviews'])
     review_list_2 = get_review_list(item_2_rev['reviews'])
+
+
     
     if pros_cons:
         body = {
-            'text':review_list_1,
+            'text':list_to_text(review_list_1),
             'category':item_1_rev['categoryPath'],
             'default_category':'tv'
         }
         pros_list_1,cons_list_1 = get_pro_con(body)
         pros_list_1 = list(set(pros_list_1))
         cons_list_1 = list(set(cons_list_1))
-        # st.write(pros_list_1)
-        # st.write(cons_list_1)
         body = {
-            'text':review_list_2,
+            'text':list_to_text(review_list_2),
             'category':item_2_rev['categoryPath'],
             'default_category':'tv'
         }
@@ -78,6 +78,8 @@ def run_compare():
         pros_list_2 = list(set(pros_list_2))
         cons_list_2 = list(set(cons_list_2))
         st.subheader('Pros Cons:')
+        # st.write(pros_list_1)
+        # st.write(pros_list_2)
         print_pros(pros_list_1,pros_list_2,item_1,item_2) 
         print_cons(cons_list_1,cons_list_2,item_1,item_2)  
     if decision_matrix:
