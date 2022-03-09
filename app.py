@@ -56,7 +56,7 @@ def run_compare():
     # aspects = [asp.strip() for asp in aspects.split(',')]
     # st.write("Getting Product 1 Aspects")
     review_list_1 = get_review_list(item_1_rev['reviews'])
-    review_list_2 = get_review_list(item_1_rev['reviews'])
+    review_list_2 = get_review_list(item_2_rev['reviews'])
     
     if pros_cons:
         body = {
