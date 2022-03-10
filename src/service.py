@@ -111,9 +111,9 @@ def get_review_list(review_list):
         ctr += 1
     return review_text
 
-def get_aspects(reviews):
-    review_list = reviews['reviews']
-    review_text = get_review_list(review_list)
+def get_aspects(review_text):
+    # review_list = reviews['reviews']
+    # review_text = get_review_list(review_list)
     # st.write(review_text)
     with st.spinner('Extracting Aspects and Polarity'):
         aspect_extraction_start = time.time()
@@ -205,5 +205,12 @@ def get_pro_con(body):
   }
   response = requests.request("POST", url, headers=headers, data=payload)
   pro_con_list = json.loads(response.text)
+  pro_con_list = get_pro_con_list(pro_con_list)
   
-  return get_pro_con_list(pro_con_list)
+  # algo = "kmeans"
+  # stopwords = nlp.Defaults.stop_words
+  # st.write(pro_con_list)
+  # pro_con_list_ = [aspect for aspect in pro_con_list if (aspect not in stopwords) and (len(str(aspect))>1)]
+  # aspect_labels,cluster_centers_,asp_vectors = get_word_clusters(pro_con_list_, nlp,algo)
+  # st.write(aspect_labels,cluster_centers_,asp_vectors)  
+  return pro_con_list

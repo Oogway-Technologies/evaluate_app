@@ -3,7 +3,7 @@ import json
 import streamlit as st
 from src.walmart_api import *
 from src.service import get_aspects,get_similar_clusters,get_review_list,get_pro_con
-from utils import print_pros,print_cons,print_aspects,list_to_text
+from utils import print_pros,print_cons,print_aspects,list_to_text,get_summaries,print_summaries
 DEV_MODE = False
 
 
@@ -24,9 +24,10 @@ item_1 = st.text_input("First item id: ", key="item_1")
 item_2 = st.text_input("Second item id: ", key="item_2")
 prod = None
 
-st.header('Select comparison features:')
-decision_matrix = st.checkbox('Decision Matrix')
-pros_cons = st.checkbox('Pros Cons')
+st.subheader('Select comparison features:')
+decision_matrix = st.checkbox('Decision Matrix (~60-90 seconds)')
+summaries = st.checkbox('Summaries (~5-10 seconds)')
+pros_cons = st.checkbox('Pros Cons (~5-10 seconds)')
 
 cols = st.columns(2)
 eval_button = cols[0].button('Evaluate')
@@ -48,9 +49,9 @@ def run_compare():
     # aspects = st.text_input("Aspects: ", key="aspects")
     # if aspects:
     # Get reviews for the two products
-    item_1_rev = get_all_reviews(item_1,1)
+    item_1_rev = get_all_reviews(item_1,2)
     # st.write(item_1_rev)
-    item_2_rev = get_all_reviews(item_2,1)
+    item_2_rev = get_all_reviews(item_2,2)
 
     # Run the API on the reviews and aspects
     # aspects = [asp.strip() for asp in aspects.split(',')]
@@ -77,19 +78,25 @@ def run_compare():
         pros_list_2,cons_list_2 = get_pro_con(body)
         pros_list_2 = list(set(pros_list_2))
         cons_list_2 = list(set(cons_list_2))
-        st.subheader('Pros Cons:')
-        # st.write(pros_list_1)
-        # st.write(pros_list_2)
+        st.header('Pros Cons:')
         print_pros(pros_list_1,pros_list_2,item_1,item_2) 
         print_cons(cons_list_1,cons_list_2,item_1,item_2)  
     if decision_matrix:
-        aspects_item_1,cluster_scores_1 = get_aspects(item_1_rev)
-        # st.write("Getting Product 2 Aspects")
-        aspects_item_2,cluster_scores_2 = get_aspects(item_2_rev)
-        
-        selected_pair = get_similar_clusters(list(aspects_item_1.keys()),list(aspects_item_2.keys()))
-        st.subheader('Decision Matrix:')
-        print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2)
+        st.header('Decision Matrix:')
+        aspects_item_1 = {}
+        aspects_item_2 = {}
+        if len(review_list_1)==0 or len(review_list_2)==0:
+            st.write("Not enough data for decision matrix")
+        else:
+            aspects_item_1,cluster_scores_1 = get_aspects(review_list_1)
+            aspects_item_2,cluster_scores_2 = get_aspects(review_list_2)
+            selected_pair = get_similar_clusters(list(aspects_item_1.keys()),list(aspects_item_2.keys()))
+            
+            print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2)
+    if summaries:
+        sum_1 = get_summaries(review_list_1)
+        sum_2 = get_summaries(review_list_2)
+        print_summaries(sum_1,sum_2,item_1,item_2)
 
 def run():
     global prod

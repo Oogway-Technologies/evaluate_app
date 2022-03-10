@@ -2,6 +2,9 @@ import spacy
 import os
 from sklearn import cluster
 import streamlit as st
+import requests
+import json
+from config import hf_auth_token
 NUM_CLUSTERS = 10
 
 def init_spacy():
@@ -31,16 +34,17 @@ def get_cluster_labels(asp_vectors,algo):
 
 def get_word_clusters(unique_aspects, nlp,algo="kmeans"):
     # print("Found {} unique aspects for this product".format(len(unique_aspects)))
-    print(algo)
+    # st.write(algo)
     asp_vectors = get_word_vectors(unique_aspects, nlp)
-    if len(unique_aspects) <= NUM_CLUSTERS:
-        # print("Too few aspects ({}) found. No clustering required...".format(len(unique_aspects)))
+    if algo=="kmeans" and (len(unique_aspects) <= NUM_CLUSTERS):
         return list(range(len(unique_aspects)))
 
     # print("Running k-means clustering...")
 
     labels,cluster_centers = get_cluster_labels(asp_vectors,algo)
     # st.write(labels,cluster_centers)
+    # st.write(labels)
+    # st.write(cluster_centers)
     return labels,cluster_centers,asp_vectors
 
 def get_word_vectors(unique_aspects, nlp):
@@ -89,8 +93,8 @@ def get_pro_con_list(pro_con_list):
 
 def print_pros(pros_list_1,pros_list_2,item_1,item_2):
     cols = st.columns(2)
-    cols[0].header(str(item_1) + " Pros:")
-    cols[1].header(str(item_2) + " Pros:")
+    cols[0].subheader(str(item_1) + " Pros:")
+    cols[1].subheader(str(item_2) + " Pros:")
     max_pro = max(len(pros_list_1),len(pros_list_2))
     for i in range(max_pro):
         cols = st.columns(2)
@@ -101,8 +105,8 @@ def print_pros(pros_list_1,pros_list_2,item_1,item_2):
 
 def print_cons(cons_list_1,cons_list_2,item_1,item_2):
     cols = st.columns(2)
-    cols[0].header(str(item_1) + " Cons:")
-    cols[1].header(str(item_2) + " Cons:")
+    cols[0].subheader(str(item_1) + " Cons:")
+    cols[1].subheader(str(item_2) + " Cons:")
     max_pro = max(len(cons_list_1),len(cons_list_2))
     for i in range(max_pro):
         cols = st.columns(2)
@@ -113,8 +117,8 @@ def print_cons(cons_list_1,cons_list_2,item_1,item_2):
 
 def print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2):
     cols = st.columns(2)
-    cols[0].header(item_1)
-    cols[1].header(item_2)
+    cols[0].subheader(item_1)
+    cols[1].subheader(item_2)
     for i,pair in enumerate(selected_pair):
         cols = st.columns(2)
         aspect = pair[0]
@@ -131,3 +135,36 @@ def list_to_text(review_list_1):
     for r in review_list_1:
         full_text = full_text + r + " "
     return [full_text]
+
+def get_summaries(review_list):
+    text = "\n###\n".join(review_list[0:8])
+    API_URL = "https://api-inference.huggingface.co/models/oogway-ai/autonlp-distilbart5-623717870"
+    headers = {"Authorization": "Bearer "+hf_auth_token}
+    payload = {
+        "inputs": text,
+    }   
+    data = json.dumps(payload)
+    response = requests.post(API_URL, headers=headers, data=data)
+    return response.json()
+
+def print_summaries(summary_1,summary_2,item_1,item_2):
+    st.header("Reviews Summary")
+    cols = st.columns(2)
+    cols[0].subheader(str(item_1) )
+    cols[1].subheader(str(item_2) )
+    cols = st.columns(2)
+    try:
+        if 'generated_text' in summary_1[0]:
+            cols[0].write(summary_1[0]['generated_text'])            
+    except Exception as e:
+        # st.write(e)
+        cols[0].write("No Summary found")
+    try:
+        if 'generated_text' in summary_2[0]:
+            cols[1].write(summary_2[0]['generated_text'])            
+    except Exception as e:
+        # st.write(e)
+        cols[1].write("No Summary found")    
+
+
+    
