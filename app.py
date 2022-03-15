@@ -56,24 +56,27 @@ def clear_state():
 st.title("Evaluate")
 
 # Search bar is always at the top of the page after the title
-st.write("Please type in items like shoes, tv, phones, headphones you would like to compare. ")
-input_prod = st.text_input("Search", key="prod")
-search = st.button('Search')
-# st.markdown("Select two items to compare")
-st.write("Copy/Paste the item id's from the search results you want to compare. ")
-item_1 = st.text_input("First item id: ", key="item_1")
-item_2 = st.text_input("Second item id: ", key="item_2")
-prod = None
+with st.form(key='my_form'):
+    st.write("Please type in items like shoes, tv, phones, headphones you would like to compare and hit search button ")
+    input_prod = st.text_input("Search", key="prod")
+    search = st.form_submit_button('Search')
+    # st.markdown("Select two items to compare")
+    st.write("Copy/Paste the item id's from the search results you want to compare. ")
+    item_1 = st.text_input("First item id: ", key="item_1")
+    item_2 = st.text_input("Second item id: ", key="item_2")
+    prod = None
 
-# st.subheader('Select comparison features:')
-st.write("Select one or more features decision matrix, pro/cons and summary and hit evaluate button")
-decision_matrix = st.checkbox('Decision Matrix (~60-90 seconds)')
-summaries = st.checkbox('Summaries (~5-10 seconds)')
-pros_cons = st.checkbox('Pros Cons (~5-10 seconds)')
-
-cols = st.columns(2)
-eval_button = cols[0].button('Evaluate')
-cols[1].button('Restart', on_click=clear_state)
+    # st.subheader('Select comparison features:')
+    st.write("Select one or more features decision matrix, pro/cons and summary and hit evaluate button")
+    decision_matrix = st.checkbox('Decision Matrix (~60-90 seconds)')
+    summaries = st.checkbox('Summaries (~5-10 seconds)')
+    pros_cons = st.checkbox('Pros Cons (~5-10 seconds)')
+    # eval_button = st.form_submit_button('Evaluate')
+    cols = st.columns(2)
+    with cols[0]:
+        eval_button = st.form_submit_button('Evaluate')
+    with cols[1]:
+        st.form_submit_button('Restart', on_click=clear_state)  
 
 
 def average_list(lst):
@@ -104,41 +107,44 @@ def run_compare():
 
     
     if pros_cons:
-        body = {
-            'text':list_to_text(review_list_1),
-            'category':item_1_rev['categoryPath'],
-            'default_category':'tv'
-        }
-        pros_list_1,cons_list_1 = get_pro_con(body)
-        pros_list_1 = list(set(pros_list_1))
-        cons_list_1 = list(set(cons_list_1))
-        body = {
-            'text':list_to_text(review_list_2),
-            'category':item_2_rev['categoryPath'],
-            'default_category':'tv'
-        }
-        pros_list_2,cons_list_2 = get_pro_con(body)
-        pros_list_2 = list(set(pros_list_2))
-        cons_list_2 = list(set(cons_list_2))
-        st.header('Pros Cons:')
-        print_pros(pros_list_1,pros_list_2,item_1,item_2) 
-        print_cons(cons_list_1,cons_list_2,item_1,item_2)  
+        with st.spinner("Evaluating pros and cons"):
+            body = {
+                'text':list_to_text(review_list_1),
+                'category':item_1_rev['categoryPath'],
+                'default_category':'tv'
+            }
+            pros_list_1,cons_list_1 = get_pro_con(body)
+            pros_list_1 = list(set(pros_list_1))
+            cons_list_1 = list(set(cons_list_1))
+            body = {
+                'text':list_to_text(review_list_2),
+                'category':item_2_rev['categoryPath'],
+                'default_category':'tv'
+            }
+            pros_list_2,cons_list_2 = get_pro_con(body)
+            pros_list_2 = list(set(pros_list_2))
+            cons_list_2 = list(set(cons_list_2))
+            st.header('Pros Cons:')
+            print_pros(pros_list_1,pros_list_2,item_1,item_2) 
+            print_cons(cons_list_1,cons_list_2,item_1,item_2)  
     if decision_matrix:
-        st.header('Decision Matrix:')
-        aspects_item_1 = {}
-        aspects_item_2 = {}
-        if len(review_list_1)==0 or len(review_list_2)==0:
-            st.write("Not enough data for decision matrix")
-        else:
-            aspects_item_1,cluster_scores_1 = get_aspects(review_list_1)
-            aspects_item_2,cluster_scores_2 = get_aspects(review_list_2)
-            selected_pair = get_similar_clusters(list(aspects_item_1.keys()),list(aspects_item_2.keys()))
-            
-            print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2)
+        with st.spinner("Calculating Decision Matrix"):
+            st.header('Decision Matrix:')
+            aspects_item_1 = {}
+            aspects_item_2 = {}
+            if len(review_list_1)==0 or len(review_list_2)==0:
+                st.write("Not enough data for decision matrix")
+            else:
+                aspects_item_1,cluster_scores_1 = get_aspects(review_list_1)
+                aspects_item_2,cluster_scores_2 = get_aspects(review_list_2)
+                selected_pair = get_similar_clusters(list(aspects_item_1.keys()),list(aspects_item_2.keys()))
+                
+                print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2)
     if summaries:
-        sum_1 = get_summaries(review_list_1)
-        sum_2 = get_summaries(review_list_2)
-        print_summaries(sum_1,sum_2,item_1,item_2)
+        with st.spinner("Calculating summaries"):
+            sum_1 = get_summaries(review_list_1)
+            sum_2 = get_summaries(review_list_2)
+            print_summaries(sum_1,sum_2,item_1,item_2)
 
 def run():
     global prod
@@ -146,6 +152,7 @@ def run():
     #     return
     if item_1 and item_2 and eval_button:
         run_compare()
+        
         return
 
     # Read in taxonomy

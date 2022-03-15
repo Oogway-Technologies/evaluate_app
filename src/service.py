@@ -131,87 +131,87 @@ def get_aspects(review_text):
     # review_list = reviews['reviews']
     # review_text = get_review_list(review_list)
     # st.write(review_text)
-    with st.spinner('Extracting Aspects and Polarity'):
-        aspect_extraction_start = time.time()
-        result = aspect_polarity_extractor(review_text)
-        data = [ r[0] for r in result ]
-        data = [{'text':d['text'],'aspect':d['aspect'],'sentiment':d['sentiment']} for d in data]
-        aspect_extraction_end = time.time()
-        data = pd.DataFrame(data)
-        # data.to_csv(".csv")
-        # st.write(data)
-        aspect_scoring_start = time.time()
-        sentiment_score_mapping = {'Positive':1,'Neutral':0,'Negative':-1}
-        aspect_mappings = {}
-        for i, row in data.iterrows():
-            for aspect, sentiment in zip(row['aspect'], row['sentiment']):
-                aspect = aspect.strip()
-                if aspect in aspect_mappings.keys():
-                    aspect_mappings[aspect].append(sentiment_score_mapping[sentiment])
-                else:
-                    aspect_mappings[aspect] = []
-                    aspect_mappings[aspect].append(sentiment_score_mapping[sentiment])    
-        unique_aspects = aspect_mappings.keys()
-        aspect_review_count = {}
-        aspect_score = {}
-        for k in aspect_mappings:
-            score = get_aspect_score(k,aspect_mappings[k])
-            aspect_review_count[k] = len(aspect_mappings[k])
-            aspect_score[k] = score
-        aspect_review_count = dict(sorted(aspect_review_count.items(), key=lambda item: item[1],reverse=True))
-        from collections import OrderedDict
-        aspect_score = OrderedDict(list(sorted(aspect_score.items(), key=lambda item : item[1],reverse=True))) 
-        aspect_scoring_end = time.time()
-        clustering_start = time.time()
-        algo = "DBSCAN"
-        stopwords = nlp.Defaults.stop_words
-        unique_aspects = [aspect for aspect in unique_aspects if (aspect not in stopwords) and (len(str(aspect))>1)]
-        aspect_labels,cluster_centers_,asp_vectors = get_word_clusters(unique_aspects, nlp,algo)
-        # if debug:
-        #   st.write("aspect_labels",aspect_labels)
-          # aspect_labels,cluster_centers_,asp_vectors
-        asp_to_cluster_map = dict(zip(unique_aspects, aspect_labels))
-        index_aspect_mapping = {}
-        for i,a in enumerate(list(unique_aspects)):
-          index_aspect_mapping[i]=a
-        clustering_end = time.time()
-        cluster_title= {}
-        if algo=="kmeans":
-          closest, _ = pairwise_distances_argmin_min(cluster_centers_, asp_vectors)
-          print(closest)
-          for i,p in enumerate(closest):
-            cluster_title[i] = index_aspect_mapping[p]
-          st.write(cluster_title)
-        label_aspect_list = {}
-        for aspect in asp_to_cluster_map:
-          # st.write(aspect,asp_to_cluster_map[aspect])
-          if algo=="kmeans":
-            label = cluster_title[int(asp_to_cluster_map[aspect])]
-          else:
-            label = int(asp_to_cluster_map[aspect])
-          if label in label_aspect_list:
-            label_aspect_list[label].append(aspect)
-          else:
-            label_aspect_list[label] = []
-            label_aspect_list[label].append(aspect)
-        # st.write(label_aspect_list)              
-        if algo=="DBSCAN":
-          for k,v in label_aspect_list.items():
-            if k == -1:
-              continue
-            cluster_title[k]=get_highest_count_aspect(v,aspect_review_count)
-          label_aspect_list_db = {}
-          for k,v in label_aspect_list.items():
-            if k == -1:
-              continue
-            label_aspect_list_db[cluster_title[k]] = v
-          label_aspect_list = label_aspect_list_db
-        # st.write(cluster_title)
-        # st.write(label_aspect_list)
-        # st.write("Aspect Scoring time",aspect_scoring_end-aspect_scoring_start)
-        # st.write("Clustering time",clustering_end-clustering_start)
-        # st.write("Aspect polarity extraction time",aspect_extraction_end-aspect_extraction_start)
-        cluster_scores = get_cluster_score(label_aspect_list,aspect_score)
+    # with st.spinner('Extracting Aspects and Polarity'):
+    aspect_extraction_start = time.time()
+    result = aspect_polarity_extractor(review_text)
+    data = [ r[0] for r in result ]
+    data = [{'text':d['text'],'aspect':d['aspect'],'sentiment':d['sentiment']} for d in data]
+    aspect_extraction_end = time.time()
+    data = pd.DataFrame(data)
+    # data.to_csv(".csv")
+    # st.write(data)
+    aspect_scoring_start = time.time()
+    sentiment_score_mapping = {'Positive':1,'Neutral':0,'Negative':-1}
+    aspect_mappings = {}
+    for i, row in data.iterrows():
+        for aspect, sentiment in zip(row['aspect'], row['sentiment']):
+            aspect = aspect.strip()
+            if aspect in aspect_mappings.keys():
+                aspect_mappings[aspect].append(sentiment_score_mapping[sentiment])
+            else:
+                aspect_mappings[aspect] = []
+                aspect_mappings[aspect].append(sentiment_score_mapping[sentiment])    
+    unique_aspects = aspect_mappings.keys()
+    aspect_review_count = {}
+    aspect_score = {}
+    for k in aspect_mappings:
+        score = get_aspect_score(k,aspect_mappings[k])
+        aspect_review_count[k] = len(aspect_mappings[k])
+        aspect_score[k] = score
+    aspect_review_count = dict(sorted(aspect_review_count.items(), key=lambda item: item[1],reverse=True))
+    from collections import OrderedDict
+    aspect_score = OrderedDict(list(sorted(aspect_score.items(), key=lambda item : item[1],reverse=True))) 
+    aspect_scoring_end = time.time()
+    clustering_start = time.time()
+    algo = "DBSCAN"
+    stopwords = nlp.Defaults.stop_words
+    unique_aspects = [aspect for aspect in unique_aspects if (aspect not in stopwords) and (len(str(aspect))>1)]
+    aspect_labels,cluster_centers_,asp_vectors = get_word_clusters(unique_aspects, nlp,algo)
+    # if debug:
+    #   st.write("aspect_labels",aspect_labels)
+      # aspect_labels,cluster_centers_,asp_vectors
+    asp_to_cluster_map = dict(zip(unique_aspects, aspect_labels))
+    index_aspect_mapping = {}
+    for i,a in enumerate(list(unique_aspects)):
+      index_aspect_mapping[i]=a
+    clustering_end = time.time()
+    cluster_title= {}
+    if algo=="kmeans":
+      closest, _ = pairwise_distances_argmin_min(cluster_centers_, asp_vectors)
+      print(closest)
+      for i,p in enumerate(closest):
+        cluster_title[i] = index_aspect_mapping[p]
+      st.write(cluster_title)
+    label_aspect_list = {}
+    for aspect in asp_to_cluster_map:
+      # st.write(aspect,asp_to_cluster_map[aspect])
+      if algo=="kmeans":
+        label = cluster_title[int(asp_to_cluster_map[aspect])]
+      else:
+        label = int(asp_to_cluster_map[aspect])
+      if label in label_aspect_list:
+        label_aspect_list[label].append(aspect)
+      else:
+        label_aspect_list[label] = []
+        label_aspect_list[label].append(aspect)
+    # st.write(label_aspect_list)              
+    if algo=="DBSCAN":
+      for k,v in label_aspect_list.items():
+        if k == -1:
+          continue
+        cluster_title[k]=get_highest_count_aspect(v,aspect_review_count)
+      label_aspect_list_db = {}
+      for k,v in label_aspect_list.items():
+        if k == -1:
+          continue
+        label_aspect_list_db[cluster_title[k]] = v
+      label_aspect_list = label_aspect_list_db
+    # st.write(cluster_title)
+    # st.write(label_aspect_list)
+    # st.write("Aspect Scoring time",aspect_scoring_end-aspect_scoring_start)
+    # st.write("Clustering time",clustering_end-clustering_start)
+    # st.write("Aspect polarity extraction time",aspect_extraction_end-aspect_extraction_start)
+    cluster_scores = get_cluster_score(label_aspect_list,aspect_score)
       # st.write(cluster_scores)
     return label_aspect_list,cluster_scores
 
