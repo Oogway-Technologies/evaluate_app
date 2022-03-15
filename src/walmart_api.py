@@ -66,7 +66,7 @@ def get_all_reviews(prod_id,num_reviews=2):
         r = { 'reviewText':review["reviewText"],
 
                 }
-        review_text.append(r)    
+        review_text.append(r)   
     for i in range(1,num_reviews):
         try:
             if res.nextPage:

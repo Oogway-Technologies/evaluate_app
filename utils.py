@@ -1,3 +1,4 @@
+from distutils.log import debug
 import spacy
 import os
 from sklearn import cluster
@@ -6,6 +7,22 @@ import requests
 import json
 from config import hf_auth_token
 NUM_CLUSTERS = 10
+import pathlib
+import os
+debug = False
+config_path  = os.path.join(pathlib.Path(__file__).parent.resolve(),'config.json')
+try:
+    with open(config_path,'r') as f:
+        config_param = json.loads(f.read())
+    eps = config_param['eps']
+    min_samples = config_param['min_samples']
+    # debug = config_param['debug']
+except Exception as e:
+    eps = 4
+    min_samples = 1
+
+# if debug:
+#     st.write("eps:",eps,"min_samples:",min_samples)
 
 def init_spacy():
     print("Loading en_core_web_sm")
@@ -26,8 +43,9 @@ def get_cluster_labels(asp_vectors,algo):
         kmeans.fit(asp_vectors)
         return kmeans.labels_,kmeans.cluster_centers_
     if algo=="DBSCAN":
-        # st.write("Running DBSCAN")
-        DBSCAN = cluster.DBSCAN(eps=5.5,min_samples=1)
+        # if debug:
+        #     st.write("Running DBSCAN",eps,min_samples)
+        DBSCAN = cluster.DBSCAN(eps=eps,min_samples=min_samples)
         DBSCAN.fit(asp_vectors)    
         return DBSCAN.labels_,[]
     
@@ -96,6 +114,11 @@ def print_pros(pros_list_1,pros_list_2,item_1,item_2):
     cols[0].subheader(str(item_1) + " Pros:")
     cols[1].subheader(str(item_2) + " Pros:")
     max_pro = max(len(pros_list_1),len(pros_list_2))
+    if len(pros_list_1)==0 and len(pros_list_2)==0:
+        cols = st.columns(2)
+        cols[0].caption("No pros found")
+        cols[1].caption("No pros found")
+
     for i in range(max_pro):
         cols = st.columns(2)
         if i < len(pros_list_1):
@@ -108,6 +131,10 @@ def print_cons(cons_list_1,cons_list_2,item_1,item_2):
     cols[0].subheader(str(item_1) + " Cons:")
     cols[1].subheader(str(item_2) + " Cons:")
     max_pro = max(len(cons_list_1),len(cons_list_2))
+    if len(cons_list_1)==0 and len(cons_list_2)==0:
+        cols = st.columns(2)
+        cols[0].caption("No cons found")
+        cols[1].caption("No cons found")    
     for i in range(max_pro):
         cols = st.columns(2)
         if i < len(cons_list_1):
@@ -131,6 +158,7 @@ def print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2)
         cols[1].progress(score)    
 
 def list_to_text(review_list_1):
+    review_list_1 = review_list_1[0:10]
     full_text = ""
     for r in review_list_1:
         full_text = full_text + r + " "
@@ -163,7 +191,7 @@ def print_summaries(summary_1,summary_2,item_1,item_2):
         if 'generated_text' in summary_2[0]:
             cols[1].write(summary_2[0]['generated_text'])            
     except Exception as e:
-        # st.write(e)
+        st.write(e)
         cols[1].write("No Summary found")    
 
 
