@@ -84,10 +84,21 @@ def average_list(lst):
         return 0.0
     return sum(lst) / len(lst)
 
+def get_item_data(item_id,prod_data):
+    for item in prod_data:
+        if int(item['itemId'])==int(item_id):
+            return item
 
 def run_compare():
     global item_1 
     global item_2
+
+    global prod
+
+    # st.write(st.session_state["prod_data"])
+
+    st.session_state["item_1_data"]  = get_item_data(item_1,st.session_state["prod_data"])
+    st.session_state["item_2_data"]  = get_item_data(item_2,st.session_state["prod_data"])
 
     # Input aspects
     # st.markdown('Specify comma-separated aspects to compare')
@@ -171,6 +182,9 @@ def run():
         return
 
     st.markdown('Total results: 10 of ' + str(prod['totalResults']))
+
+    # st.write(prod['items'][0])
+    st.session_state["prod_data"] = prod['items'][0:10]
 
     for i in range(0, 5):
         try:

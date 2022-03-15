@@ -111,8 +111,16 @@ def get_pro_con_list(pro_con_list):
 
 def print_pros(pros_list_1,pros_list_2,item_1,item_2):
     cols = st.columns(2)
+    st.session_state["item_1_data"]
     cols[0].subheader(str(item_1) + " Pros:")
+    cols[0].text(st.session_state["item_1_data"]['name'])
+    cols[0].image(st.session_state["item_1_data"]['mediumImage'], use_column_width=True)
     cols[1].subheader(str(item_2) + " Pros:")
+    cols[1].text(st.session_state["item_2_data"]['name'])
+    cols[1].image(st.session_state["item_2_data"]['mediumImage'], use_column_width=True)           
+
+    
+    
     max_pro = max(len(pros_list_1),len(pros_list_2))
     if len(pros_list_1)==0 and len(pros_list_2)==0:
         cols = st.columns(2)
@@ -125,6 +133,9 @@ def print_pros(pros_list_1,pros_list_2,item_1,item_2):
             cols[0].caption(pros_list_1[i])
         if i < len(pros_list_2):
             cols[1].caption(pros_list_2[i])
+
+
+             
 
 def print_cons(cons_list_1,cons_list_2,item_1,item_2):
     cols = st.columns(2)
@@ -140,7 +151,7 @@ def print_cons(cons_list_1,cons_list_2,item_1,item_2):
         if i < len(cons_list_1):
             cols[0].caption(cons_list_1[i])
         if i < len(cons_list_2):
-            cols[1].caption(cons_list_2[i]) 
+            cols[1].caption(cons_list_2[i])  
 
 def print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2):
     cols = st.columns(2)
@@ -191,7 +202,7 @@ def print_summaries(summary_1,summary_2,item_1,item_2):
         if 'generated_text' in summary_2[0]:
             cols[1].write(summary_2[0]['generated_text'])            
     except Exception as e:
-        st.write(e)
+        # st.write(e)
         cols[1].write("No Summary found")    
 
 
