@@ -76,7 +76,8 @@ def get_cluster_score(label_aspect_list,aspect_score):
     cluster_scores = {}
     for label,cluster in label_aspect_list.items():
         scores = [aspect_score[aspect] for aspect in cluster ]
-        cluster_scores[label] = round(sum(scores)/len(scores))
+        score = sum(scores)/len(scores)
+        cluster_scores[label] = round(score/20,1)
     return cluster_scores
 
 def get_pro_con_list(pro_con_list):
@@ -110,14 +111,15 @@ def get_pro_con_list(pro_con_list):
     return pros_list,cons_list
 
 def print_pros(pros_list_1,pros_list_2,item_1,item_2):
+    # st.write(type(pros_list_1),pros_list_1)
+    
     cols = st.columns(2)
-    st.session_state["item_1_data"]
     cols[0].subheader(str(item_1) + " Pros:")
-    cols[0].text(st.session_state["item_1_data"]['name'])
-    cols[0].image(st.session_state["item_1_data"]['mediumImage'], use_column_width=True)
+    # cols[0].text(st.session_state["item_1_data"]['name'])
+    # cols[0].image(st.session_state["item_1_data"]['mediumImage'], use_column_width=True)
     cols[1].subheader(str(item_2) + " Pros:")
-    cols[1].text(st.session_state["item_2_data"]['name'])
-    cols[1].image(st.session_state["item_2_data"]['mediumImage'], use_column_width=True)           
+    # cols[1].text(st.session_state["item_2_data"]['name'])
+    # cols[1].image(st.session_state["item_2_data"]['mediumImage'], use_column_width=True)           
 
     
     
@@ -154,6 +156,8 @@ def print_cons(cons_list_1,cons_list_2,item_1,item_2):
             cols[1].caption(cons_list_2[i])  
 
 def print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2):
+    # st.write(type(selected_pair),selected_pair)
+    # st.write(type(cluster_scores_1),cluster_scores_1)
     cols = st.columns(2)
     cols[0].subheader(item_1)
     cols[1].subheader(item_2)
@@ -161,12 +165,19 @@ def print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2)
         cols = st.columns(2)
         aspect = pair[0]
         score =  cluster_scores_1[pair[0]]
-        cols[0].caption(aspect + ": " + str(score) + "%" )
-        cols[0].progress(score)
+        if score>0:
+            cols[0].caption(aspect + ": " + str(score).rstrip('.0') + " ⭐" )
+        else:
+            cols[0].caption(aspect + ": " + str(int(score)) + " ⭐" )
+
+        cols[0].progress(int(score * 20))
         aspect = pair[1]
-        score =  cluster_scores_2[pair[1]]
-        cols[1].caption(aspect + ": " + str(score) + "%")
-        cols[1].progress(score)    
+        score =  cluster_scores_2[pair[1]]    
+        if score>0:
+            cols[1].caption(aspect + ": " + str(score).rstrip('.0') + " ⭐")
+        else:
+            cols[1].caption(aspect + ": " + str(int(score)) + " ⭐" )        
+        cols[1].progress(int(score * 20))    
 
 def list_to_text(review_list_1):
     review_list_1 = review_list_1[0:10]
@@ -187,7 +198,9 @@ def get_summaries(review_list):
     return response.json()
 
 def print_summaries(summary_1,summary_2,item_1,item_2):
+    
     st.header("Reviews Summary")
+    # st.write(summary_1)
     cols = st.columns(2)
     cols[0].subheader(str(item_1) )
     cols[1].subheader(str(item_2) )
