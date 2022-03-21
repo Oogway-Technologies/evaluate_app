@@ -42,6 +42,10 @@ selected_pair = [
     "Picture"
   ],
   [
+    "Shipping",
+    "Shipping"
+  ],  
+  [
     "Setup",
     "Setup"
   ],

@@ -9,10 +9,19 @@ from utils import print_pros,print_cons,print_aspects,list_to_text,get_summaries
 DEV_MODE = False
 import pathlib
 import os
+
+import streamlit_analytics
+
+firebase_key  = os.path.join(pathlib.Path(__file__).parent.resolve(),'firebase-key.json')
+
+# with streamlit_analytics.track(firestore_key_file=firebase_key, firestore_collection_name="evaluate-streamlit"):
+# or pass the same args to `start_tracking` AND `stop_tracking`
 config_path  = os.path.join(pathlib.Path(__file__).parent.resolve(),'config.json')
 query_params = st.experimental_get_query_params()
+# st.write(query_params)
 try:
-    if query_params['user'][0]=='admin':
+    if "user" in query_params and "admin" in query_params["user"]:
+    # if query_params['user'][0]=='admin':
         with open(config_path,'r') as f:
             config_param = json.loads(f.read())
         eps = config_param['eps']
@@ -20,22 +29,22 @@ try:
         number_of_reviews = config_param['number_of_reviews']
         # debug = config_param['debug']
 
-    st.sidebar.write("Admin Panel")
-    reviews_options = range(10,51,10)
-    index = reviews_options.index(number_of_reviews)
-    number_of_reviews = st.sidebar.selectbox('Number of Reviews?',reviews_options,index=index)
-    eps = st.sidebar.slider('DBSCAN eps ?', min_value=1.0, max_value=10.0, value=eps, step=0.5)
-    min_samples = st.sidebar.slider('DBSCAN min_samples ?', 1, 10, min_samples)
-    # debug = st.sidebar.checkbox("Debug",value=debug)
-    update = st.sidebar.button("Update")
-    if update:
-        d = {'number_of_reviews':number_of_reviews,'eps':eps,'min_samples':min_samples}
-        # d = {'number_of_reviews':number_of_reviews,'eps':eps,'min_samples':min_samples,'debug':debug}
+        st.sidebar.write("Admin Panel")
+        reviews_options = range(10,51,10)
+        index = reviews_options.index(number_of_reviews)
+        number_of_reviews = st.sidebar.selectbox('Number of Reviews?',reviews_options,index=index)
+        eps = st.sidebar.slider('DBSCAN eps ?', min_value=1.0, max_value=10.0, value=eps, step=0.5)
+        min_samples = st.sidebar.slider('DBSCAN min_samples ?', 1, 10, min_samples)
+        # debug = st.sidebar.checkbox("Debug",value=debug)
+        update = st.sidebar.button("Update")
         if update:
-            with open(config_path,'w') as f:
-                f.write(json.dumps(d))
+            d = {'number_of_reviews':number_of_reviews,'eps':eps,'min_samples':min_samples}
+            # d = {'number_of_reviews':number_of_reviews,'eps':eps,'min_samples':min_samples,'debug':debug}
+            if update:
+                with open(config_path,'w') as f:
+                    f.write(json.dumps(d))
 except Exception as e:
-    
+    # st.write(e)
     pass  
 
 try:
@@ -43,7 +52,7 @@ try:
         config_param = json.loads(f.read())
     number_of_reviews = int(config_param['number_of_reviews']/10)
 except Exception as e:
-    st.write(e)
+    # st.write(e)
     number_of_reviews = 1
 
 def clear_state():
@@ -54,48 +63,56 @@ def clear_state():
 
 # App title
 st.title("Evaluate")
+st.info("This prototype gathers reviews for the selected products and provides review summary, pros/cons and decision matrix to help users make decisions")
 
 # Search bar is always at the top of the page after the title
-st.session_state["choice"] = ""
-choice = st.radio( "Preselected or Search", ('Preselected', 'Search'))
-if choice == "Preselected":
-    option = st.selectbox('Select product category', ('Tv', 'Mobile', 'Shoe'))
-    if option=="Tv":
-        import tv as sample
+# streamlit_analytics.start_tracking(firestore_key_file=firebase_key, firestore_collection_name="evaluate-streamlit")
+with streamlit_analytics.track(firestore_key_file=firebase_key, firestore_collection_name="evaluate-streamlit"):
+    st.session_state["choice"] = ""
+    choice = st.radio( "Examples or Search", ('Examples', 'Search'))
+    if choice == "Examples":
+        option = st.selectbox('Select product category', ('Tv', 'Monitor', 'Speaker'))
+        if option=="Tv":
+            import tv as sample
+        elif  option=="Monitor":
+            import monitor as sample
+        elif option=="Speaker":
+            import speaker as sample
         item_1_val = sample.item_1
         item_2_val = sample.item_2
-    item_1 = st.text_input("First item id: ", value=item_1_val ,key="item_1")
-    item_2 = st.text_input("Second item id: ", value=item_2_val, key="item_2")
-    eval_button = True
-    search = ""
-    prod = ""
-    st.session_state["option"] = option
-    st.session_state["choice"] = choice
-elif choice == "Search":
-    with st.form(key='my_form'):
-        
-            st.session_state["choice"] = "Search"
-            st.write("Please type in items like shoes, tv, phones, headphones you would like to compare and hit search button ")
-            input_prod = st.text_input("Search", key="prod")
-            search = st.form_submit_button('Search')
-            # st.markdown("Select two items to compare")
-            st.write("Copy/Paste the item id's from the search results you want to compare. ")
-            item_1 = st.text_input("First item id: ", key="item_1")
-            item_2 = st.text_input("Second item id: ", key="item_2")
-            prod = None
+        item_1 = st.text_input("First item id: ", value=item_1_val ,key="item_1")
+        item_2 = st.text_input("Second item id: ", value=item_2_val, key="item_2")
+        eval_button = True
+        search = ""
+        prod = ""
+        st.session_state["option"] = option
+        st.session_state["choice"] = choice
+    elif choice == "Search":
+        with st.form(key='my_form'):
+            
+                st.session_state["choice"] = "Search"
+                st.write("Please type in items like  tv, monitor, beds, headphones you would like to compare and hit search button.")
+                input_prod = st.text_input("Search", key="prod")
+                search = st.form_submit_button('Search')
+                # st.markdown("Select two items to compare")
+                st.write("Copy/Paste the item id's from the search results you want to compare. Please select items with 50 or more reviews.")
+                item_1 = st.text_input("First item id: ", key="item_1")
+                item_2 = st.text_input("Second item id: ", key="item_2")
+                prod = None
 
-            # st.subheader('Select comparison features:')
-            st.write("Select one or more features decision matrix, pro/cons and summary and hit evaluate button")
-            decision_matrix = st.checkbox('Decision Matrix (~60-90 seconds)')
-            summaries = st.checkbox('Summaries (~5-10 seconds)')
-            pros_cons = st.checkbox('Pros Cons (~5-10 seconds)')
-            # eval_button = st.form_submit_button('Evaluate')
-            cols = st.columns(2)
-            with cols[0]:
-                eval_button = st.form_submit_button('Evaluate')
-            with cols[1]:
-                st.form_submit_button('Restart', on_click=clear_state)  
+                # st.subheader('Select comparison features:')
+                st.write("Select one or more features decision matrix, pro/cons and summary and hit evaluate button")
+                decision_matrix = st.checkbox('Decision Matrix (~60-90 seconds)')
+                summaries = st.checkbox('Summaries (~5-10 seconds)')
+                pros_cons = st.checkbox('Pros Cons (~5-10 seconds)')
+                # eval_button = st.form_submit_button('Evaluate')
+                cols = st.columns(2)
+                with cols[0]:
+                    eval_button = st.form_submit_button('Evaluate')
+                with cols[1]:
+                    st.form_submit_button('Restart', on_click=clear_state)  
 
+# streamlit_analytics.stop_tracking()
 
 def average_list(lst):
     if len(lst) == 0:
@@ -135,8 +152,8 @@ def run_compare():
         review_list_1 = get_review_list(item_1_rev['reviews'])
         review_list_2 = get_review_list(item_2_rev['reviews'])
 
-        st.write(st.session_state["item_1_data"]['mediumImage'])
-        st.write(st.session_state["item_2_data"]['mediumImage'])
+        # st.write(st.session_state["item_1_data"]['mediumImage'])
+        # st.write(st.session_state["item_2_data"]['mediumImage'])
         cols = st.columns(2)
         cols[0].text(st.session_state["item_1_data"]['name'])
         cols[0].image(st.session_state["item_1_data"]['mediumImage'], use_column_width=True)
@@ -186,27 +203,31 @@ def run_compare():
     else:
         if st.session_state["option"]=="Tv":
             import tv as sample
-            item_2 = sample.item_1
-            item_1 = sample.item_2
-            item_1_image = sample.item_1_image
-            item_2_image = sample.item_2_image
-            item_1_name = sample.item_1_name
-            item_2_name = sample.item_2_name
-            pros_list_1 = sample.item_1_pros
-            pros_list_2 = sample.item_2_pros
-            cons_list_1 = sample.item_1_cons
-            cons_list_2 = sample.item_2_cons
-            selected_pair = sample.selected_pair
-            cluster_scores_1 = sample.cluster_scores_1
-            cluster_scores_2 = sample.cluster_scores_2
-            sum_1 =  sample.item_1_summary
-            sum_2 =  sample.item_2_summary
+        elif st.session_state["option"]=="Monitor":
+            import monitor as sample
+        elif st.session_state["option"]=="Speaker":
+            import speaker as sample
+        item_1 = sample.item_1
+        item_2 = sample.item_2
+        item_1_image = sample.item_1_image
+        item_2_image = sample.item_2_image
+        item_1_name = sample.item_1_name
+        item_2_name = sample.item_2_name
+        pros_list_1 = sample.item_1_pros
+        pros_list_2 = sample.item_2_pros
+        cons_list_1 = sample.item_1_cons
+        cons_list_2 = sample.item_2_cons
+        selected_pair = sample.selected_pair
+        cluster_scores_1 = sample.cluster_scores_1
+        cluster_scores_2 = sample.cluster_scores_2
+        sum_1 =  sample.item_1_summary
+        sum_2 =  sample.item_2_summary
         
         cols = st.columns(2)
         cols[0].text(item_1_name)
         cols[0].image(item_1_image, use_column_width=True)
         cols[1].text(item_2_name)
-        cols[1].image(item_1_image, use_column_width=True)
+        cols[1].image(item_2_image, use_column_width=True)
         print_pros(pros_list_1,pros_list_2,item_1,item_2) 
         print_cons(cons_list_1,cons_list_2,item_1,item_2)
         print_aspects(selected_pair,item_1,item_2,cluster_scores_1,cluster_scores_2)
@@ -268,3 +289,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+
